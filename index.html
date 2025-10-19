@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Mod FC25 - Modulaire</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23667eea'/%3E%3Ccircle cx='50' cy='50' r='35' fill='%23764ba2' stroke='%23fff' stroke-width='2'/%3E%3Cpolygon points='50,25 60,40 75,40 65,52 70,67 50,57 30,67 35,52 25,40 40,40' fill='%23fff'/%3E%3Ctext x='50' y='85' text-anchor='middle' fill='%23fff' font-family='Arial' font-size='12' font-weight='bold'%3EFC25%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    
+    
+    
+    <!-- ========================================
+         🎨 CONFIGURATION RAPIDE - MODIFIEZ ICI
+         ======================================== -->
+    
+    
+    
+  <link rel="stylesheet" href="style.css">
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Page de connexion -->
+        <div id="loginPage" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: var(--bg-dark);">
+            <div style="background: var(--bg-card); border-radius: 12px; padding: 40px; max-width: 450px; width: 100%; box-shadow: var(--shadow-card); border: 1px solid var(--border-light);">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="width: 80px; height: 80px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                        <img src="https://iili.io/KeVIs1f.png" alt="Logo FC25" style="width: 80px; height: 80px; border-radius: 12px; object-fit: cover;">
+                    </div>
+                    <h1 style="margin: 0; font-size: 2em; font-weight: 700; color: var(--primary-blue);" id="loginTitle">Mod FC25</h1>
+                    <p style="margin: 12px 0 0; color: var(--text-medium); font-size: 1.1em;" id="loginSubtitle">Gestionnaire de progression</p>
+                </div>
+                
+                <div>
+                    <button class="btn" onclick="enterVisitor()" 
+                            style="width: 100%; padding: 16px 24px; margin: 0 0 15px 0; background: var(--accent-blue); border-color: var(--accent-blue); font-size: 1.1em; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        Mode Visiteur
+                    </button>
+                    
+                    <button class="btn" onclick="showAdminForm()" 
+                            style="width: 100%; padding: 16px 24px; background: var(--primary-blue); border-color: var(--primary-blue); font-size: 1.1em; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                        </svg>
+                        Mode Administrateur
+                    </button>
+                </div>
+                
+                
+        <div id="authBox" class="admin-form">
+          <input id="adminEmail" type="email" placeholder="Email administrateur" style="width:100%;padding:8px;border-radius:6px;margin-top:8px;" />
+          <input id="adminPass" type="password" placeholder="Mot de passe" style="width:100%;padding:8px;border-radius:6px;margin-top:8px;" />
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button id="loginBtn" class="btn btn--success">Se connecter</button>
+            <button id="logoutBtn" class="btn" style="display:none">Se déconnecter</button>
+          </div>
+        </div>
+
+                
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-light);">
+                    <p style="color: var(--text-medium); font-size: 0.9em; margin: 0 0 15px 0;">Suivi et gestion de votre mod FC25</p>
+                    
+                    <details style="text-align: left; background: var(--bg-darker); border: 1px solid var(--border-light); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                        <summary style="cursor: pointer; color: var(--primary-blue); font-weight: 600; margin-bottom: 10px;">🔧 Site hors ligne après publication ?</summary>
+                        <div style="font-size: 0.85em; color: var(--text-medium); line-height: 1.5;">
+                            <p><strong>Causes principales :</strong></p>
+                            <ol style="margin: 10px 0; padding-left: 20px;">
+                                <li><strong>Domaine non autorisé</strong> - Ajoutez votre domaine Canva dans Firebase Console</li>
+                                <li><strong>Règles de sécurité</strong> - Vérifiez que les règles Firebase autorisent la lecture/écriture</li>
+                                <li><strong>Quota dépassé</strong> - Plan gratuit Firebase limité à 1GB</li>
+                                <li><strong>Configuration réseau</strong> - Certains réseaux bloquent Firebase</li>
+                            </ol>
+                            <p><strong>Solution rapide :</strong> Ouvrez la console développeur (F12) pour voir les erreurs détaillées.</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site principal -->
+        <div id="mainSite" style="display: none;">
+            <button id="hamburgerBtn" onclick="Navigation.toggleSidebar()">
+                <div class="hamburger-lines">
+                    <div class="hamburger-line"></div>
+                    <div class="hamburger-line"></div>
+                    <div class="hamburger-line"></div>
+                </div>
+            </button>
+            
+            <div id="sidebarOverlay" class="sidebar-overlay" onclick="Navigation.closeSidebar()"></div>
+            <nav id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <img src="https://iili.io/KeVIs1f.png" alt="Logo FC25" class="logo-icon" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                        <div class="logo-text">
+                            <h3>Mod FC25</h3>
+                            <p>Nationale 1</p>
+                        </div>
+                    </div>
+                    <div id="sidebarMode" class="sidebar-mode">
+                        👤 Mode Visiteur
+                    </div>
+                </div>
+                
+                <div class="sidebar-menu">
+                    <div class="menu-item active" onclick="Navigation.showPage('home')">
+                        <span class="menu-icon">🏠</span>
+                        <span class="menu-text">Accueil</span>
+                    </div>
+                    <div class="menu-item" onclick="Navigation.showPage('tasks')">
+                        <span class="menu-icon">📋</span>
+                        <span class="menu-text">Tâches</span>
+                    </div>
+                    <div class="menu-item" onclick="Navigation.showPage('gallery')">
+                        <span class="menu-icon">🖼️</span>
+                        <span class="menu-text">Galerie</span>
+                    </div>
+                </div>
+                
+                <div class="sidebar-footer">
+                    <div class="footer-content">
+                        <div class="footer-icon">🔥</div>
+                        <div class="footer-title">FC25 Mod Tracker</div>
+                        <div class="footer-version">Version 2.0 • 2024</div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="main-content">
+                <nav style="background: var(--bg-card); border-bottom: 1px solid var(--border-light); padding: 16px; box-shadow: var(--shadow-card);">
+                    <div class="container" style="display: flex; justify-content: space-between; align-items: center; margin-left: 0; max-width: none;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <h2 id="mainTitle" style="color: var(--primary-blue); font-size: 1.3em; margin: 0;">Mod Nationale 1 - FC25</h2>
+                            <div id="connectionStatus" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 6px; font-size: 0.85em; font-weight: 500; border: 1px solid var(--border-light); background: var(--bg-darker);">
+                                <span id="statusIcon">🔴</span>
+                                <span id="statusText">Hors ligne</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="Auth.logout()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                            </svg>
+                            Déconnexion
+                        </button>
+                    </div>
+                </nav>
+
+                <div class="container">
+                <div id="homePage">
+                    <!-- Description détaillée du mod -->
+                    <div class="card card-highlight">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+                                <img src="https://iili.io/KeVaEtp.png" alt="Logo FC25" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                                <h1 style="color: var(--primary-blue); margin: 0; font-size: 2.5em;">Mod Nationale 1 - FC25</h1>
+                            </div>
+                            <p style="font-size: 1.2em; color: var(--text-medium); font-style: italic;">Redécouvrez le football français avec une immersion totale en National 1</p>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin: 30px 0;">
+                            <div>
+                                <h3 style="color: var(--primary-blue); margin-bottom: 15px;">🎯 Objectif du Mod</h3>
+                                <p style="line-height: 1.6; text-align: justify;">
+                                    Ce mod transforme complètement l'expérience FC25 en vous plongeant dans l'univers authentique du championnat National 1 français. 
+                                    Chaque équipe a été soigneusement recréée avec ses couleurs, son identité visuelle et son stade pour offrir une immersion totale 
+                                    dans le troisième niveau du football français.
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <h3 style="color: var(--primary-blue); margin-bottom: 15px;">✨ Fonctionnalités Principales</h3>
+                                <ul style="line-height: 1.8; padding-left: 20px;">
+                                    <li><strong>17 équipes authentiques</strong> avec logos officiels redessinés</li>
+                                    <li><strong>Maillots complets</strong> : domicile, extérieur et gardien pour chaque club</li>
+                                    <li><strong>Écharpes et drapeaux</strong> personnalisés aux couleurs des équipes</li>
+                                    <li><strong>Stades réalistes</strong> avec noms et capacités officielles</li>
+                                    <li><strong>Effectifs complets</strong> avec joueurs authentiques pour chaque équipe</li>
+                                    <li><strong>Identité visuelle de ligue</strong> complète avec trophée et bannières</li>
+                                    <li><strong>Calendrier authentique</strong> respectant les rencontres réelles</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div style="background: var(--light-blue); border-radius: 8px; padding: 25px; margin: 25px 0; border: 1px solid var(--accent-blue);">
+                            <h3 style="color: var(--primary-blue); margin-bottom: 20px; text-align: center;">🏆 Les 17 Équipes du National 1</h3>
+                            <div class="teams-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; text-align: center;">
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 AS Nancy Lorraine</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Chardons • Stade Marcel Picot</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🟡 Le Mans FC</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Sarthois • MMArena</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔵 US Boulogne</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Mariniers • Stade de la Libération</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 Dijon FCO</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Rouges • Stade Gaston Gérard</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔵 FC Bourg-Péronnas</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Bressans • Stade Marcel Verchere</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🟢 Aubagne FC</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Provençaux • Stade de Lattre</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 US Orléans</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Aurelianais • Stade de la Source</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🟡 Concarneau</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Thoniers • Stade Guy Piriou</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 Valenciennes FC</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Atheniens • Stade du Hainaut</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 FC Rouen</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Diables Rouges • Stade Robert Diochon</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔵 Quevilly Rouen</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Quevillais • Stade Robert Diochon</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🟡 FC Sochaux</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Lionceaux • Stade Auguste Bonal</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔵 FC Versailles 78</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Versaillais • Stade de Montbauron</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 Paris 13 Atletico</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Parisiens • Stade Charléty</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🟢 Villefranche Beaujolais</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Caladois • Stade Armand Chouffet</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 LB Châteauroux</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">La Berri • Stade Gaston Petit</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.03); padding: 18px; border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.15); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                                    <strong style="color: var(--neon-cyan); font-size: 1.05em;">🔴 Nîmes Olympique</strong><br>
+                                    <span style="color: var(--text-medium); font-size: 0.95em; line-height: 1.4;">Les Crocodiles • Stade des Costières</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 25px 0;">
+                            <div style="background: rgba(0, 212, 255, 0.08); padding: 20px; border-radius: 12px; border-left: 4px solid var(--neon-blue);">
+                                <h4 style="color: var(--neon-blue); margin-bottom: 10px;">🎨 Création Graphique</h4>
+                                <p style="line-height: 1.5; font-size: 0.95em;">
+                                    Chaque logo, maillot et élément visuel est créé avec soin pour respecter l'identité de chaque club 
+                                    tout en s'intégrant parfaitement dans l'univers graphique de FC25.
+                                </p>
+                            </div>
+                            
+                            <div style="background: rgba(0, 255, 255, 0.08); padding: 20px; border-radius: 12px; border-left: 4px solid var(--neon-cyan);">
+                                <h4 style="color: var(--neon-cyan); margin-bottom: 10px;">⚽ Réalisme Sportif</h4>
+                                <p style="line-height: 1.5; font-size: 0.95em;">
+                                    Le calendrier, les rivalités et les caractéristiques des stades reflètent fidèlement 
+                                    la réalité du championnat National 1 français.
+                                </p>
+                            </div>
+                            
+                            <div style="background: rgba(102, 126, 234, 0.08); padding: 20px; border-radius: 12px; border-left: 4px solid #667eea;">
+                                <h4 style="color: #667eea; margin-bottom: 10px;">🔄 Mises à Jour</h4>
+                                <p style="line-height: 1.5; font-size: 0.95em;">
+                                    Le mod évolue régulièrement avec les changements de saison, les nouveaux maillots 
+                                    et les éventuelles modifications du championnat.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <p style="font-size: 1.1em; color: var(--text-medium); font-style: italic;">
+                                "Vivez l'authenticité du football français avec une expérience de jeu immersive et réaliste"
+                            </p>
+                            <div style="margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+                                <div style="background: var(--bg-glass); border: 1px solid var(--border-medium); padding: 16px 24px; border-radius: 12px; font-size: 1em; font-weight: 600; color: var(--text-light); backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: var(--shadow-card);" onmouseover="this.style.background='var(--bg-card-hover)'; this.style.borderColor='var(--primary-blue)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--bg-glass)'; this.style.borderColor='var(--border-medium)'; this.style.transform='translateY(0)'">
+                                    🏆 17 Équipes Complètes
+                                </div>
+                                <div style="background: var(--bg-glass); border: 1px solid var(--border-medium); padding: 16px 24px; border-radius: 12px; font-size: 1em; font-weight: 600; color: var(--text-light); backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: var(--shadow-card);" onmouseover="this.style.background='var(--bg-card-hover)'; this.style.borderColor='var(--primary-blue)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--bg-glass)'; this.style.borderColor='var(--border-medium)'; this.style.transform='translateY(0)'">
+                                    🎨 159 Éléments Graphiques
+                                </div>
+                                <div style="background: var(--bg-glass); border: 1px solid var(--border-medium); padding: 16px 24px; border-radius: 12px; font-size: 1em; font-weight: 600; color: var(--text-light); backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: var(--shadow-card);" onmouseover="this.style.background='var(--bg-card-hover)'; this.style.borderColor='var(--primary-blue)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--bg-glass)'; this.style.borderColor='var(--border-medium)'; this.style.transform='translateY(0)'">
+                                    ⚽ 100% Authentique
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="text-align: center;">
+                        <h2>📊 Progression Globale</h2>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 24px; margin: 24px 0;">
+                            <div style="position: relative; width: 140px; height: 140px;">
+                                <!-- Cercle de fond avec effet de lueur -->
+                                <svg width="140" height="140" style="transform: rotate(-90deg); filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.3));">
+                                    <!-- Cercle de fond -->
+                                    <circle cx="70" cy="70" r="55" stroke="var(--border-light)" stroke-width="8" fill="none" opacity="0.3"/>
+                                    
+                                    <!-- Cercle de progression principal -->
+                                    <circle id="progressCircle" cx="70" cy="70" r="55" 
+                                            stroke="url(#progressGradient)" 
+                                            stroke-width="8" 
+                                            fill="none" 
+                                            stroke-dasharray="345.58" 
+                                            stroke-dashoffset="345.58" 
+                                            stroke-linecap="round"
+                                            style="transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease;">
+                                    </circle>
+                                    
+                                    <!-- Cercle de lueur -->
+                                    <circle id="progressGlow" cx="70" cy="70" r="55" 
+                                            stroke="var(--primary-blue)" 
+                                            stroke-width="12" 
+                                            fill="none" 
+                                            stroke-dasharray="345.58" 
+                                            stroke-dashoffset="345.58" 
+                                            stroke-linecap="round"
+                                            opacity="0.2"
+                                            style="transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;">
+                                    </circle>
+                                    
+                                    <!-- Définition du gradient -->
+                                    <defs>
+                                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                            <stop offset="50%" style="stop-color:#2563eb;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+                                        </linearGradient>
+                                        
+                                        <!-- Gradient pour progression complète -->
+                                        <linearGradient id="completeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                            <stop offset="50%" style="stop-color:#059669;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                
+                                <!-- Contenu central avec animation -->
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                    <div style="font-size: 2.2em; font-weight: 700; color: var(--primary-blue); transition: all 0.3s ease;" id="progressText">0%</div>
+                                    <div style="font-size: 0.85em; color: var(--text-medium); margin-top: 4px;">Terminé</div>
+                                    
+                                    <!-- Particules d'animation pour 100% -->
+                                    <div id="celebrationParticles" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0;">
+                                        <div class="particle" style="position: absolute; width: 6px; height: 6px; background: #ffd700; border-radius: 50%; animation: particle1 2s ease-out infinite;"></div>
+                                        <div class="particle" style="position: absolute; width: 4px; height: 4px; background: #ff6b6b; border-radius: 50%; animation: particle2 2s ease-out infinite 0.2s;"></div>
+                                        <div class="particle" style="position: absolute; width: 5px; height: 5px; background: #4ecdc4; border-radius: 50%; animation: particle3 2s ease-out infinite 0.4s;"></div>
+                                        <div class="particle" style="position: absolute; width: 3px; height: 3px; background: #45b7d1; border-radius: 50%; animation: particle4 2s ease-out infinite 0.6s;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Effet de pulsation pour progression élevée -->
+                                <div id="progressPulse" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 130px; height: 130px; border: 2px solid var(--primary-blue); border-radius: 50%; opacity: 0; animation: pulse 2s ease-in-out infinite;"></div>
+                            </div>
+                            <div style="text-align: left;">
+                                <div style="font-size: 1.3em; color: var(--text-light); margin-bottom: 10px;" id="progressDetails">0/159 tâches terminées</div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 12px; height: 12px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 8px var(--neon-cyan);"></div>
+                                        <span style="color: var(--text-medium);">Tâches terminées</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 12px; height: 12px; background: rgba(255,255,255,0.2); border-radius: 50%;"></div>
+                                        <span style="color: var(--text-medium);">Tâches restantes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0;">
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border-medium); padding: 24px; border-radius: 12px; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: var(--shadow-card);" onmouseover="this.style.background='var(--bg-card-hover)'; this.style.borderColor='var(--primary-blue)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--bg-glass)'; this.style.borderColor='var(--border-medium)'; this.style.transform='translateY(0)'">
+                            <h3 style="color: var(--primary-blue); margin-bottom: 16px; font-size: 1.1em;">🏆 Équipes</h3>
+                            <div style="font-size: 2.2em; margin: 12px 0; color: var(--text-light); font-weight: 700;" id="totalTeams">17</div>
+                            <div style="font-size: 0.95em; color: var(--text-medium);" id="teamsCompleted">0 terminées</div>
+                        </div>
+                        
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border-medium); padding: 24px; border-radius: 12px; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: var(--shadow-card);" onmouseover="this.style.background='var(--bg-card-hover)'; this.style.borderColor='var(--primary-blue)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--bg-glass)'; this.style.borderColor='var(--border-medium)'; this.style.transform='translateY(0)'">
+                            <h3 style="color: var(--primary-blue); margin-bottom: 16px; font-size: 1.1em;">📋 Tâches Équipes</h3>
+                            <div style="font-size: 2.2em; margin: 12px 0; color: var(--text-light); font-weight: 700;" id="teamTasksProgress">0/153</div>
+                            <div style="font-size: 0.95em; color: var(--text-medium);" id="teamTasksPercent">0%</div>
+                        </div>
+                        
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border-medium); padding: 24px; border-radius: 12px; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: var(--shadow-card);" onmouseover="this.style.background='var(--bg-card-hover)'; this.style.borderColor='var(--primary-blue)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--bg-glass)'; this.style.borderColor='var(--border-medium)'; this.style.transform='translateY(0)'">
+                            <h3 style="color: var(--primary-blue); margin-bottom: 16px; font-size: 1.1em;">🏅 Tâches Ligue</h3>
+                            <div style="font-size: 2.2em; margin: 12px 0; color: var(--text-light); font-weight: 700;" id="leagueTasksProgress">0/6</div>
+                            <div style="font-size: 0.95em; color: var(--text-medium);" id="leagueTasksPercent">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tasksPage" style="display: none;">
+                    <div class="card">
+                        <h2>📋 Gestion des Tâches</h2>
+                        <div id="tasksList"></div>
+                    </div>
+                </div>
+
+                <div id="galleryPage" style="display: none;">
+                    <div class="card">
+                        <h2>🖼️ Galerie du Mod</h2>
+                        <p style="color: var(--text-medium); margin-bottom: 20px;">
+                            Partagez vos créations : logos, maillots, écharpes et autres éléments graphiques du mod
+                        </p>
+                        
+                        <div id="uploadSection" style="display: none;">
+                            <!-- Indicateur de stockage Firebase -->
+                            <div id="storageIndicator" style="background: var(--bg-darker); border: 1px solid var(--border-light); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <h4 style="margin: 0; color: var(--text-light);">💾 Stockage Firebase</h4>
+                                    <span id="storagePercentage" style="font-weight: 600; color: var(--primary-blue);">Calcul...</span>
+                                </div>
+                                <div style="background: #333; border-radius: 10px; height: 8px; margin-bottom: 10px;">
+                                    <div id="storageProgressBar" style="background: var(--primary-blue); height: 100%; width: 0%; border-radius: 10px; transition: all 0.3s ease;"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85em; color: var(--text-medium);">
+                                    <span id="storageUsed">Utilisé: 0 MB</span>
+                                    <span id="storageLimit">Limite: 1 GB (gratuit)</span>
+                                </div>
+                                <div id="storageWarning" style="display: none; margin-top: 10px; padding: 8px 12px; background: rgba(255, 193, 7, 0.1); border: 1px solid #ffc107; border-radius: 6px; color: #ffc107; font-size: 0.9em;">
+                                    ⚠️ Stockage presque plein ! Supprimez des images pour libérer de l'espace.
+                                </div>
+                            </div>
+                            
+                            <div style="border: 2px dashed var(--border-medium); border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 30px; background: var(--bg-darker);">
+                                <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="Gallery.handleFileSelect(event)">
+                                <div onclick="document.getElementById('imageInput').click()" style="cursor: pointer;">
+                                    <div style="font-size: 3em; margin-bottom: 15px;">📸</div>
+                                    <h3 style="color: var(--primary-blue); margin-bottom: 10px;">Ajouter des images</h3>
+                                    <p style="color: var(--text-medium);">Cliquez ici ou glissez-déposez vos images</p>
+                                    <p style="font-size: 0.9em; color: var(--text-dark);">Formats supportés : JPG, PNG, GIF • Taille max : 5MB par image</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="galleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+                            <!-- Les images seront ajoutées ici -->
+                        </div>
+                        
+                        <div id="emptyGallery" style="text-align: center; padding: 60px 20px; color: var(--text-medium);">
+                            <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">🖼️</div>
+                            <h3>Aucune image pour le moment</h3>
+                            <p>Les images uploadées apparaîtront ici</p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+
+    
+    
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

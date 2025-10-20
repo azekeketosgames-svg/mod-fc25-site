@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FC 25 - National 1 Mod Manager</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getDatabase, ref as dbRef, set, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    
+    window.firebaseModules = { initializeApp, getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, getDatabase, dbRef, set, onValue };
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { initializeApp, getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, getDatabase, dbRef, set, onValue } = window.firebaseModules;
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdHQw8ZAvm4boMbWD5HlCRnT-jO9HgxbU",
+      authDomain: "fc25-ded0b.firebaseapp.com",
+      databaseURL: "https://fc25-ded0b-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "fc25-ded0b",
+      storageBucket: "fc25-ded0b.firebasestorage.app",
+      messagingSenderId: "158286052687",
+      appId: "1:158286052687:web:70df56d63f80b72c0a193a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+    const ADMIN_UID = 'gTepuU10AGNdh41ZLXCemUk7oLi1';
+
+    const Icon = ({ name, size = 24, className = "" }) => {
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      }, []);
+      return React.createElement('i', { 
+        'data-lucide': name, 
+        className,
+        style: { width: size, height: size }
+      });
+    };
+
+    const FC25ModManager = () => {
+      const [currentPage, setCurrentPage] = useState('home');
+      const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [showLoginModal, setShowLoginModal] = useState(false);
+      const [user, setUser] = useState(null);
+      const [isAdmin, setIsAdmin] = useState(false);
+      const [loginEmail, setLoginEmail] = useState('');
+      const [loginPassword, setLoginPassword] = useState('');
+      const [loginError, setLoginError] = useState('');
+      
+      const teams = [
+        'Nancy', 'Le Mans', 'Boulogne', 'Dijon', 'Bourg-Péronnas', 'Aubagne',
+        'Orléans', 'Concarneau', 'Valenciennes', 'Rouen', 'Quevilly', 'Sochaux',
+        'Versailles', 'Paris 13 Atletico', 'Villefranche', 'Châteauroux', 'Nîmes'
+      ];
+
+      const leagueTasks = [
+        'Créer logo', 'Créer bannière', 'Créer trophée', 'Créer nom dans fichier LOC',
+        'Créer calendrier de rencontre', 'Créer play-off', 'Créer promotion'
+      ];
+
+      const teamTasks = [
+        'Créer logo', 'Créer drapeau', 'Créer écharpe', 'Créer bannière',
+        'Créer maillot domicile', 'Créer maillot extérieur', 'Créer maillot gardien',
+        'Créer nom dans fichier LOC', 'Changer nom du stade', 'Changer capacité du stade'
+      ];
+
+      const [tasks, setTasks] = useState(() => {
+        const initialTasks = {
+          league: leagueTasks.reduce((acc, task) => ({ ...acc, [task]: false }), {})
+        };
+        teams.forEach(team => {
+          initialTasks[team] = teamTasks.reduce((acc, task) => ({ ...acc, [task]: false }), {});
+        });
+        return initialTasks;
+      });
+
+      const [gallery, setGallery] = useState([]);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          setIsAdmin(currentUser?.uid === ADMIN_UID);
+        });
+        return unsubscribe;
+      }, []);
+
+      useEffect(() => {
+        const tasksRef = dbRef(database, 'modData/tasks');
+        const unsubscribe = onValue(tasksRef, (snapshot) => {
+          if (snapshot.exists()) {
+            setTasks(snapshot.val());
+          }
+          setLoading(false);
+        }, (error) => {
+          console.error('Erreur Database:', error);
+          setLoading(false);
+        });
+        return unsubscribe;
+      }, []);
+
+      useEffect(() => {
+        const galleryRef = dbRef(database, 'modData/gallery');
+        const unsubscribe = onValue(galleryRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            setGallery(Object.values(data));
+          } else {
+            setGallery([]);
+          }
+        });
+        return unsubscribe;
+      }, []);
+
+      const handleLogin = async () => {
+        setLoginError('');
+        try {
+          await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+          setShowLoginModal(false);
+          setLoginEmail('');
+          setLoginPassword('');
+        } catch (error) {
+          setLoginError('Email ou mot de passe incorrect');
+        }
+      };
+
+      const handleLogout = async () => {
+        await signOut(auth);
+      };
+
+      const toggleTask = async (category, task) => {
+        if (!isAdmin) return;
+        
+        const newTasks = {
+          ...tasks,
+          [category]: {
+            ...tasks[category],
+            [task]: !tasks[category][task]
+          }
+        };
+        setTasks(newTasks);
+        await set(dbRef(database, 'modData/tasks'), newTasks);
+      };
+
+
+
+      const deleteImage = async (id) => {
+        if (!isAdmin) return;
+        
+        try {
+          const newGallery = gallery.filter(img => img.id !== id);
+          const galleryObj = newGallery.reduce((acc, img) => {
+            acc[img.id] = img;
+            return acc;
+          }, {});
+          
+          await set(dbRef(database, 'modData/gallery'), galleryObj);
+        } catch (error) {
+          console.error('Erreur suppression:', error);
+        }
+      };
+
+      const getProgress = () => {
+        let total = 0;
+        let completed = 0;
+        let leagueCompleted = 0;
+        let leagueTotal = 0;
+        let teamTasksCompleted = 0;
+        let teamTasksTotal = 0;
+        let teamsCompleted = 0;
+
+        Object.values(tasks.league).forEach(done => {
+          leagueTotal++;
+          total++;
+          if (done) {
+            leagueCompleted++;
+            completed++;
+          }
+        });
+
+        teams.forEach(team => {
+          let teamTasksDone = 0;
+          Object.values(tasks[team]).forEach(done => {
+            teamTasksTotal++;
+            total++;
+            if (done) {
+              teamTasksCompleted++;
+              completed++;
+              teamTasksDone++;
+            }
+          });
+          if (teamTasksDone === teamTasks.length) {
+            teamsCompleted++;
+          }
+        });
+
+        return { 
+          total, completed, 
+          percentage: total > 0 ? (completed / total) * 100 : 0,
+          leagueCompleted, leagueTotal,
+          teamTasksCompleted, teamTasksTotal,
+          teamsCompleted, teamsTotal: teams.length
+        };
+      };
+
+      const progress = getProgress();
+
+      const ProgressCircle = ({ percentage }) => {
+        const radius = 70;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (percentage / 100) * circumference;
+
+        return (
+          <div className="relative inline-flex items-center justify-center">
+            <svg width="180" height="180" className="transform -rotate-90">
+              <circle cx="90" cy="90" r={radius} stroke="#1e293b" strokeWidth="12" fill="none" />
+              <circle cx="90" cy="90" r={radius} stroke="#0066ff" strokeWidth="12" fill="none"
+                strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+                className="transition-all duration-500" />
+            </svg>
+            <div className="absolute text-center">
+              <div className="text-4xl font-bold text-white">{Math.round(percentage)}%</div>
+              <div className="text-sm text-gray-400">Complété</div>
+            </div>
+          </div>
+        );
+      };
+
+      const LoginModal = () => (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full border border-slate-700">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Icon name="lock" size={24} className="text-blue-400" />
+                Connexion Admin
+              </h2>
+              <button onClick={() => setShowLoginModal(false)} className="text-gray-400 hover:text-white">
+                <Icon name="x" size={24} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2">Email</label>
+                <input type="email" value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded text-white focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2">Mot de passe</label>
+                <input type="password" value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                  className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded text-white focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              {loginError && <p className="text-red-400 text-sm">{loginError}</p>}
+              <button onClick={handleLogin}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold transition">
+                Se connecter
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+
+      const HomePage = () => (
+        <div className="space-y-8">
+          {!isAdmin && (
+            <div className="bg-blue-600/20 border border-blue-500/50 rounded-lg p-4 flex items-center gap-3">
+              <Icon name="lock" size={20} className="text-blue-400" />
+              <p className="text-blue-300 text-sm">Vous êtes en mode lecture seule. Seul l'admin peut modifier.</p>
+            </div>
+          )}
+          
+          <div className="bg-gradient-to-br from-blue-600/20 to-blue-900/20 border border-blue-500/30 rounded-lg p-8">
+            <h1 className="text-4xl font-bold text-white mb-4 flex items-center gap-3">
+              <Icon name="trophy" size={40} className="text-blue-500" />
+              Mod National 1 - FC 25
+            </h1>
+            <p className="text-gray-300 text-lg leading-relaxed">
+              Plongez dans l'univers authentique du football français avec ce mod révolutionnaire pour FC 25. 
+              Découvrez <span className="text-blue-400 font-semibold">17 équipes légendaires de National 1</span>, 
+              la prestigieuse 3ème division française, recréées avec une précision inégalée.
+            </p>
+            <p className="text-gray-300 text-lg leading-relaxed mt-4">
+              Chaque club possède ses <span className="text-blue-400 font-semibold">logos authentiques</span>, 
+              ses <span className="text-blue-400 font-semibold">maillots officiels</span>, 
+              ses <span className="text-blue-400 font-semibold">stades personnalisés</span> et son identité unique.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-4">
+              <div className="bg-blue-600/20 px-4 py-2 rounded-lg border border-blue-500/30">
+                <span className="text-blue-400 font-bold text-2xl">17</span>
+                <span className="text-gray-300 ml-2">Équipes</span>
+              </div>
+              <div className="bg-blue-600/20 px-4 py-2 rounded-lg border border-blue-500/30">
+                <span className="text-blue-400 font-bold text-2xl">{progress.total}</span>
+                <span className="text-gray-300 ml-2">Tâches totales</span>
+              </div>
+              <div className="bg-blue-600/20 px-4 py-2 rounded-lg border border-blue-500/30">
+                <span className="text-blue-400 font-bold text-2xl">{teams.length * 3}</span>
+                <span className="text-gray-300 ml-2">Maillots</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-8 flex flex-col items-center">
+            <h2 className="text-2xl font-bold text-white mb-6">Progression du Projet</h2>
+            <ProgressCircle percentage={progress.percentage} />
+            <div className="mt-6 text-center">
+              <p className="text-xl text-gray-300">
+                <span className="text-blue-400 font-bold">{progress.completed}</span> sur{' '}
+                <span className="text-blue-400 font-bold">{progress.total}</span> tâches complétées
+              </p>
+              <p className="text-gray-400 mt-2">{progress.total - progress.completed} tâches restantes</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4 text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-1">
+                  {progress.leagueCompleted}/{progress.leagueTotal}
+                </div>
+                <div className="text-sm text-gray-400">Tâches de ligue</div>
+              </div>
+              <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4 text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-1">
+                  {progress.teamTasksCompleted}/{progress.teamTasksTotal}
+                </div>
+                <div className="text-sm text-gray-400">Tâches d'équipes</div>
+              </div>
+              <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4 text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-1">
+                  {progress.teamsCompleted}/{progress.teamsTotal}
+                </div>
+                <div className="text-sm text-gray-400">Équipes terminées</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      const TasksPage = () => (
+        <div className="space-y-6">
+          {!isAdmin && (
+            <div className="bg-blue-600/20 border border-blue-500/50 rounded-lg p-4 flex items-center gap-3">
+              <Icon name="lock" size={20} className="text-blue-400" />
+              <p className="text-blue-300 text-sm">Mode lecture seule</p>
+            </div>
+          )}
+          
+          <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <Icon name="trophy" className="text-blue-500" />
+              Tâches de la Ligue
+            </h2>
+            <div className="space-y-2">
+              {leagueTasks.map(task => (
+                <label key={task} className={`flex items-center gap-3 p-3 bg-slate-800/50 rounded transition ${isAdmin ? 'hover:bg-slate-800 cursor-pointer' : 'cursor-not-allowed opacity-75'}`}>
+                  <input type="checkbox" checked={tasks.league[task]}
+                    onChange={() => toggleTask('league', task)}
+                    disabled={!isAdmin}
+                    className="w-5 h-5 accent-blue-500" />
+                  <span className={`text-gray-300 ${tasks.league[task] ? 'line-through opacity-50' : ''}`}>
+                    {task}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {teams.map(team => (
+            <div key={team} className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Icon name="flag" size={20} className="text-blue-400" />
+                {team}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {teamTasks.map(task => (
+                  <label key={task} className={`flex items-center gap-3 p-2 bg-slate-900/50 rounded transition ${isAdmin ? 'hover:bg-slate-900 cursor-pointer' : 'cursor-not-allowed opacity-75'}`}>
+                    <input type="checkbox" checked={tasks[team][task]}
+                      onChange={() => toggleTask(team, task)}
+                      disabled={!isAdmin}
+                      className="w-4 h-4 accent-blue-500" />
+                    <span className={`text-sm text-gray-300 ${tasks[team][task] ? 'line-through opacity-50' : ''}`}>
+                      {task}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <div className="mt-3 text-right">
+                <span className="text-xs text-blue-400">
+                  {Object.values(tasks[team]).filter(Boolean).length}/{teamTasks.length} complétées
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+      const GalleryPage = () => (
+        <div className="space-y-6">
+          {isAdmin && (
+            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+              <label className="flex flex-col items-center gap-4 cursor-pointer">
+                <div className="w-full p-8 border-2 border-dashed border-blue-500/50 rounded-lg hover:border-blue-500 transition bg-blue-600/10">
+                  <div className="text-center">
+                    <Icon name="image" size={48} className="mx-auto text-blue-400 mb-3" />
+                    <p className="text-white font-semibold mb-1">Cliquez pour ajouter des images</p>
+                    <p className="text-gray-400 text-sm">PNG, JPG, WEBP</p>
+                  </div>
+                </div>
+                <input type="file" multiple accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden" />
+              </label>
+            </div>
+          )}
+
+          {gallery.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {gallery.map(img => (
+                <div key={img.id} className="relative group">
+                  <img src={img.url} alt="Gallery"
+                    className="w-full h-48 object-cover rounded-lg border border-slate-700" />
+                  {isAdmin && (
+                    <button onClick={() => deleteImage(img.id)}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition">
+                      <Icon name="x" size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-400">
+              <Icon name="image" size={64} className="mx-auto mb-3 opacity-50" />
+              <p>Aucune image dans la galerie</p>
+            </div>
+          )}
+        </div>
+      );
+
+      if (loading) {
+        return (
+          <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+            <div className="text-white text-xl">Chargement...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-slate-900 text-white">
+          {showLoginModal && <LoginModal />}
+
+          <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 border-r border-slate-700 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold text-blue-400">National 1 Mod</h2>
+                <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-white">
+                  <Icon name="x" size={24} />
+                </button>
+              </div>
+              <nav className="space-y-2">
+                <button onClick={() => { setCurrentPage('home'); setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${currentPage === 'home' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-slate-700'}`}>
+                  <Icon name="home" size={20} />
+                  Accueil
+                </button>
+                <button onClick={() => { setCurrentPage('tasks'); setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${currentPage === 'tasks' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-slate-700'}`}>
+                  <Icon name="check-square" size={20} />
+                  Tâches
+                </button>
+                <button onClick={() => { setCurrentPage('gallery'); setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${currentPage === 'gallery' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-slate-700'}`}>
+                  <Icon name="image" size={20} />
+                  Galerie
+                </button>
+              </nav>
+              
+              <div className="mt-8 pt-8 border-t border-slate-700">
+                {isAdmin ? (
+                  <button onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
+                    <Icon name="log-out" size={20} />
+                    Déconnexion
+                  </button>
+                ) : (
+                  <button onClick={() => { setShowLoginModal(true); setSidebarOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
+                    <Icon name="log-in" size={20} />
+                    Connexion Admin
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {sidebarOpen && (
+            <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-black/50 z-40" />
+          )}
+
+          <div className="min-h-screen">
+            <header className="bg-slate-800 border-b border-slate-700 sticky top-0 z-30">
+              <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <button onClick={() => setSidebarOpen(true)} className="text-gray-300 hover:text-white transition">
+                    <Icon name="menu" size={28} />
+                  </button>
+                  <h1 className="text-xl font-bold text-blue-400">FC 25 - National 1 Mod Manager</h1>
+                </div>
+                {isAdmin && (
+                  <div className="hidden md:flex items-center gap-2 text-sm text-green-400">
+                    <Icon name="lock" size={16} />
+                    <span>Mode Admin</span>
+                  </div>
+                )}
+              </div>
+            </header>
+
+            <main className="container mx-auto px-4 py-8">
+              {currentPage === 'home' && <HomePage />}
+              {currentPage === 'tasks' && <TasksPage />}
+              {currentPage === 'gallery' && <GalleryPage />}
+            </main>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<FC25ModManager />, document.getElementById('root'));
+  </script>
+</body>
+</html>

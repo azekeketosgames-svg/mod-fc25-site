@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion - FC 25 National 1</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdHQw8ZAvm4boMbWD5HlCRnT-jO9HgxbU",
+      authDomain: "fc25-ded0b.firebaseapp.com",
+      databaseURL: "https://fc25-ded0b-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "fc25-ded0b",
+      storageBucket: "fc25-ded0b.firebasestorage.app",
+      messagingSenderId: "158286052687",
+      appId: "1:158286052687:web:70df56d63f80b72c0a193a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorMsg = document.getElementById("error-message");
+      errorMsg.textContent = "";
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error(error);
+        errorMsg.textContent = "Email ou mot de passe incorrect.";
+      }
+    }
+
+    window.handleLogin = handleLogin;
+    window.goVisitor = () => {
+      localStorage.setItem("visitor", "true");
+      window.location.href = "index.html";
+    };
+  </script>
+</head>
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen px-4">
+  <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-8 w-full max-w-md shadow-lg">
+    <h1 class="text-3xl font-bold text-center mb-6 text-blue-400">FC 25 - National 1</h1>
+    <p class="text-gray-400 text-center mb-8">Connectez-vous pour accéder à l’espace administrateur<br>ou continuez en tant que visiteur.</p>
+
+    <form onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label for="email" class="block text-gray-300 mb-2">Adresse e-mail</label>
+        <input id="email" type="email" required
+          class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+          placeholder="exemple@gmail.com" />
+      </div>
+      <div>
+        <label for="password" class="block text-gray-300 mb-2">Mot de passe</label>
+        <input id="password" type="password" required
+          class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+          placeholder="********" />
+      </div>
+      <p id="error-message" class="text-red-400 text-sm text-center"></p>
+      <button type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-2 rounded-lg">
+        Connexion Admin
+      </button>
+    </form>
+
+    <div class="mt-6 text-center">
+      <button onclick="goVisitor()"
+        class="text-blue-400 hover:underline text-sm font-medium">
+        Continuer en tant que visiteur
+      </button>
+    </div>
+
+    <div class="mt-8 border-t border-slate-700 pt-4 text-center text-gray-500 text-xs">
+      © 2025 FC25 National 1 Mod Manager
+    </div>
+  </div>
+</body>
+</html>

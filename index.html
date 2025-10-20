@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - FC 25 National 1 Mod</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdHQw8ZAvm4boMbWD5HlCRnT-jO9HgxbU",
+      authDomain: "fc25-ded0b.firebaseapp.com",
+      databaseURL: "https://fc25-ded0b-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "fc25-ded0b",
+      storageBucket: "fc25-ded0b.firebasestorage.app",
+      messagingSenderId: "158286052687",
+      appId: "1:158286052687:web:70df56d63f80b72c0a193a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const loginBtn = document.getElementById('loginBtn');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const errorMsg = document.getElementById('errorMsg');
+      const guestBtn = document.getElementById('guestBtn');
+
+      const handleLogin = async () => {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+          errorMsg.textContent = 'Veuillez remplir tous les champs';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Connexion...';
+        errorMsg.classList.add('hidden');
+
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          // Redirection vers le dashboard
+          window.location.href = 'dashboard.html';
+        } catch (error) {
+          console.error('Erreur connexion:', error);
+          errorMsg.textContent = 'Email ou mot de passe incorrect';
+          errorMsg.classList.remove('hidden');
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Se connecter';
+        }
+      };
+
+      loginBtn.addEventListener('click', handleLogin);
+      
+      passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleLogin();
+        }
+      });
+
+      guestBtn.addEventListener('click', () => {
+        window.location.href = 'dashboard.html';
+      });
+    });
+  </script>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-4">
+  <div class="absolute inset-0 overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="relative w-full max-w-md">
+    <div class="bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-blue-500/30 p-8">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-600/20 rounded-full mb-4 border-2 border-blue-500">
+          <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-2">FC 25 - National 1</h1>
+        <p class="text-gray-400">Mod Manager</p>
+      </div>
+
+      <div class="space-y-5">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            autocomplete="email"
+            class="w-full px-4 py-3 bg-slate-900/50 border-2 border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+            placeholder="admin@example.com"
+          />
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-300 mb-2">
+            Mot de passe
+          </label>
+          <input
+            type="password"
+            id="password"
+            autocomplete="current-password"
+            class="w-full px-4 py-3 bg-slate-900/50 border-2 border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div id="errorMsg" class="hidden bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
+          Message d'erreur
+        </div>
+
+        <button
+          id="loginBtn"
+          class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20 border border-blue-400"
+        >
+          Se connecter
+        </button>
+
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-slate-700"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-slate-800 text-gray-400">ou</span>
+          </div>
+        </div>
+
+        <button
+          id="guestBtn"
+          class="w-full bg-slate-700/50 hover:bg-slate-700 text-gray-300 font-semibold py-3 px-4 rounded-lg transition border-2 border-slate-600/50 hover:border-slate-600"
+        >
+          Continuer en mode lecture seule
+        </button>
+      </div>
+
+      <div class="mt-6 text-center">
+        <p class="text-xs text-gray-500">
+          Connectez-vous pour gérer les tâches et la galerie
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-6 text-center">
+      <p class="text-sm text-gray-400">
+        17 équipes • 177 tâches • National 1 (3ème division française)
+      </p>
+    </div>
+  </div>
+</body>
+</html>
